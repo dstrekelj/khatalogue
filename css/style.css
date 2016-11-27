@@ -6,14 +6,14 @@ body {
     margin: 0;
     color: #eee;
     font-size: 12pt;
-    font-family: Courier New, Courier, monospace;
+    font-family: 'Inconsolata', monospace;
     text-align: justify;
     line-height: 1.5em;
     background: #000;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #0ff;
+    color: #fff;
     margin-top: 2em;
 }
 
@@ -39,8 +39,8 @@ canvas {
 }
 
 code {
-    background: #eee;
-    color: #000;
+    border: 1px solid #0ff;
+    color: #0ff;
     padding: .2em .4em;
     font-size: 10pt;
 }
@@ -56,15 +56,19 @@ blockquote {
     margin: 4em 0;
     border: 1px solid #ff0;
     padding: 1em 2em;
-    font-size: 10pt;
 }
 blockquote>p:first-child {
     color: #ff0;
 }
 
 pre>code {
+    font-family: 'Inconsolata', monospace;
+    border: 0;
     background: #000;
-    font-family: Courier New, Courier, monospace;
-    font-size: 10pt;
     color: #eee;
+    font-size: 12pt;
+}
+
+ol, ul {
+    margin-bottom: 3em;
 }
