@@ -5,4 +5,8 @@ project.windowOptions = {
 	width: 640,
 	height: 240
 };
+project.targetOptions.html5 = {
+	canvasId: 'khatalogue-01d',
+	scriptName: 'khatalogue-01d'
+};
 resolve(project);
