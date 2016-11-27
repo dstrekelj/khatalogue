@@ -8,5 +8,5 @@ project.windowOptions = {
 project.targetOptions.html5 = {
 	canvasId: 'khatalogue-01a',
 	scriptName: 'khatalogue-01a'
-}
+};
 resolve(project);
