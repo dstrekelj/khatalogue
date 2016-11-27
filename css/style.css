@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 14pt;
+    font-family: monospace;
+    background: #000;
+}
+
+div#wrapper {
+    margin: 0 auto;
+    width: 700px;
+}
