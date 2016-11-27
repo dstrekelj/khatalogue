@@ -1,0 +1,4 @@
+-lib markdown
+-cp Sources
+-main khatalogue.Khatalogue
+--interp
