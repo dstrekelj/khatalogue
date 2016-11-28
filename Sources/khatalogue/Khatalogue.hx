@@ -2,8 +2,7 @@ package khatalogue;
 
 class Khatalogue {
     static function main() : Void {
-        var contents = Reader.read('./Articles/');
-        var articles = Parser.parse(contents);
-        Generator.generate('./out/', articles);
+        var content = Reader.read('./Articles/');
+        Generator.generate('./out/', content);
     }
 }

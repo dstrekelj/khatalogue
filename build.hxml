@@ -1,4 +1,9 @@
+-resource Resources/templates/article.html@templateArticle
+-resource Resources/templates/index.html@templateIndex
+
 -lib markdown
+
 -cp Sources
 -main khatalogue.Khatalogue
+
 --interp
