@@ -20,6 +20,8 @@ class Reader {
             if (hasExtension(file, 'md')) {
                 var titleArray = file.split('_');
                 titleArray.shift();
+                titleArray = titleArray.join(' ').split('.');
+                titleArray.pop();
                 var title = titleArray.join(' ');
                 var path = file.split('.').shift();
 
