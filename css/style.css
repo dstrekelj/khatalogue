@@ -10,6 +10,11 @@ body {
     text-align: justify;
     line-height: 1.5em;
     background: #000;
+    height: 100%;
+}
+
+html {
+    height: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -25,12 +30,13 @@ code {
     font-size: 12pt;
 }
 
-div#wrapper {
+div.wrapper {
     border-left: 4px double #fff;
     border-right: 4px double #fff;
     margin: 0 auto;
     padding: 4em 2em;
     width: 800px;
+    height: 100%;
 }
 
 canvas {
@@ -71,4 +77,19 @@ pre>code {
 
 ol, ul {
     margin-bottom: 3em;
+}
+
+a {
+    color: #f0f;
+}
+
+.article-items li {
+    font-size: 2em;
+    margin-bottom: 1em;
+}
+
+h1.title {
+    font-size: 4em;
+    text-align: center;
+    margin-bottom: 2em;
 }

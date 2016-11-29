@@ -1,158 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <link rel="stylesheet" href="./css/style.css"/>
-    <link rel="stylesheet" href="./css/highlight/xt256.css">
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet">
-    <script src="./js/highlight/highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-    <title>Khatalogue</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="css/style.css"/>
+<link href="https://fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet">
+<title>Khatalogue</title>
 </head>
 <body>
-<div id="wrapper">
-<h1>1. Introduction</h1>
-<p>This entry provides a brief introduction to the fundamentals of working with Kha. Specifically, the presented samples demonstrate how to:</p><ul><li>set up a new Kha project;</li><li>draw to the framebuffer with the <code>graphics1</code> API;</li><li>utilise a consistent, platform-agnostic pseudorandom number generator;</li><li>make use of elapsed time;</li><li>schedule function calls.</li></ul>
-<p>By the end of this entry, the reader should have a firm grasp on how to set up a basic Kha project, and how to work with commonly used Kha APIs.</p>
-<h2>1.1. System initialisation</h2>
-<p>Every Kha project begins with a call to <code>System.init()</code>, marking the initialisation of the targeted system's application context. This not only sets up the rendering context, but also initialises APIs that handle input devices (keyboard, mouse, gamepad, touchpad, microphone, sensors ...), output devices (display, headphones, speakers, ...), scheduling, and more.</p>
-<p>The application context is initialised with a configuration structure which can contain:</p><ul><li>the <code>title</code>, a text string used for the application title;</li><li>window <code>width</code>, an integer describing the context window width;</li><li>window <code>height</code>, an integer describing the context window height;</li><li><code>samplesPerPixel</code>, an integer setting the amount of anti-aliasing.</li></ul>
-<p>All of the above options are optional, as they have default values to fall back on.</p>
-<p>Along with the configuration, the context is also given a callback function to be executed when the initial set up finishes.</p>
-<p>With the above in mind, a simple Kha project can be boiled down to the following:</p>
-<pre><code class="prettyprint haxe">class Main {
-    static function main() : Void {
-        var title = 'Kha project';
-        var width = 640;
-        var height = 240;
-        kha.System.init({ title: title, width: width, height: height }, init);
-    }
-
-    static function init() : Void {
-        kha.System.notifyOnRender(render);
-        kha.Scheduler.addTimeTask(update, 0, 1 / 60);
-    }
-
-    static function update() : Void {}
-
-    static function render(framebuffer : kha.Framebuffer) : Void {}
-}</code></pre>
-<p>Note the use of the <code>init()</code> function to set up <code>render()</code> and <code>update()</code> loops once the application context is initialised. The rendering frame rate is uncapped, and the application is expected to update at 60 frames per second. Kha's scheduler will go to great lengths to maintain the desired frame rate, even as far as going backwards and forwards in simulation time to achieve that.</p>
-<blockquote>
-<p><strong>Simulation time?</strong></p>
-<p>Kha distinguishes between <em>real time</em> and <em>simulation time</em>.</p>
-<p>Real time is the running time of the application, from the moment the application context is initialised up until the moment the application is closed. As such, it only moves forwards.</p>
-<p>Simulation time is the running time of the scheduler. If the application is paused, out of focus, or halted in any way, the simulation time stops as well. Simulation time can move backwards <em>and</em> forwards to attempt synchronisation in case of dropped frames, network latency, and similar. </p></blockquote>
-<h2>1.2. Rendering context</h2>
-<p>The rendering context is exposed in the form of a framebuffer, which is the visible colour output of the application. The framebuffer can be accessed and modified through any of Kha's graphics APIs:</p><ul><li><code>graphics1</code> (<code>g1</code>), a 1D API modelled after old pixel-pushing hardware;</li><li><code>graphics2</code> (<code>g2</code>), a 2D API modelled after HTML5 canvas and Java painter APIs;</li><li><code>graphics4</code> (<code>g4</code>), a 3D API modelled after shader-based graphics APIS (OpenGL ES 2, Direct 3D 11).</li></ul>
-<p>Kha's graphics APIs are generational. Not only does each API mimic a particular generation of computer graphics APIs, the higher-level APIs also provide implementations for their predecessors. Generally, an API like <code>g1</code> makes use of the 'most modern' API implemented for the target platform, such as <code>g2</code> or <code>g4</code>. This way, the lower-level APIs can be used even if the rendering context is set up by a higher-level API.</p>
-<blockquote>
-<p><strong>Where's <code>graphics3</code>?</strong></p>
-<p>Following the generational design, the <code>graphics3</code> API aims to be an old-school 3D graphics API modelled after early OpenGL. At the time of writing, the name is just a placeholder, and the API is not yet implemented.</p></blockquote>
-<p>Drawing to the framebuffer is a three-step process:</p><ol><li>Choose a graphics API (e.g. <code>g2</code>) and prepare the rendering context with a call to <code>begin()</code> (e.g. <code>g2.begin()</code>);</li><li>Use drawing functions provided by the API;</li><li>After all drawing is performed, finalize the context with a call to <code>end()</code> (e.g. <code>g2.end()</code>).</li></ol>
-<p>The samples in this entry make use of <code>g1</code>, because its simplicity won't distract from the other showcased APIs. Drawing to the framebuffer with <code>g1</code> is performed as follows:</p>
-<pre><code class="prettyprint haxe">static function render(framebuffer : kha.Framebuffer) : Void {
-    var g1 = framebuffer.g1;
-    g1.begin();
-    g1.setPixel(320, 120, kha.Color.White);
-    g1.end();
-}</code></pre>
-<p>This sample draws a white pixel to the framebuffer at position (320, 120) relative to its top-left corner.</p>
-<canvas id="khatalogue-01a" width="640" height="240"></canvas>
-<h2>1.3. Random number generation</h2>
-<p>Kha's pseudorandom number generator - located in <code>kha.math.Random</code> - is an implementation of the Mersenne Twister. Using it is the recommended way of performing pseudorandom number generation, because the underlying implementation does not make use of platform-specific APIs and should therefore be consistent across all supported platforms.</p>
-<p>To use the generator, instantiate it with an integer seed. Alternatively, rely on the static instance and methods which the <code>kha.math.Random</code> class provides for convenience.</p>
-<pre><code class="prettyprint haxe">static var random = new kha.math.Random(0);</code></pre>
-<p>The generator makes it possible to generate floating point or integer numbers, either at 'random' or in a specified range. To draw a number of pixels at random positions, generate integer numbers in the range of framebuffer dimensions. Note that setting pixels outside the framebuffer dimensions results in an attempt to write outside of allocated framebuffer memory, which will cause the application to crash.</p>
-<pre><code class="prettyprint haxe">g1.begin();
-for (i in 0...(framebuffer.width * framebuffer.height)) {
-    g1.setPixel(
-        random.GetUpTo(framebuffer.width - 1),
-        random.GetUpTo(framebuffer.height - 1),
-        kha.Color.White
-    );
-}
-g1.end();</code></pre>
-<p>This sample creates 'white noise', as different pixels are coloured white every frame, at random.</p>
-<canvas id="khatalogue-01b" width="640" height="240"></canvas>
-<h2>1.4. Simulation time</h2>
-<p>The scheduler - located in <code>kha.Scheduler</code> - is a powerful API for scheduling and managing time and frame tasks. It also exposes the previously discussed real and simulation time variables.</p>
-<p>This sample demonstrates how simulation time can be used with a periodic function to draw animated pixels to the framebuffer.</p>
-<p>First, declare <code>amplitude</code> and <code>period</code> variables for the periodic function.</p>
-<pre><code class="prettyprint haxe">static var amplitude : Int = 100;
-static var period : Int = 100;</code></pre>
-<p>Then, draw a row of pixels the width of the framebuffer, calculating the periodic function in the process.</p>
-<pre><code class="prettyprint haxe">g1.begin();
-for (i in 0...framebuffer.width) {
-    var dy = Math.sin(kha.Scheduler.time() + i / period);
-    g1.setPixel(
-        i,
-        120 + Std.int(amplitude * dy),
-        kha.Color.White
-    );
-}
-g1.end();</code></pre>
-<p>The result is an animated sine wave.</p>
-<canvas id="khatalogue-01c" width="640" height="240"></canvas>
-<h2>1.5. Colours</h2>
-<p>Kha also provides an API for working with colours in the form of <code>kha.Color</code>. At run-time, a colour is represented by a 32-bit (unsigned) integer where colour channels are packed in an ARGB format. At compile-time, the API allows for colours to be created from a hex string, integer value, byte components, or float components. Additionally, colour channels can be read or written to directly with use of byte or float values.</p>
-<p>Continuing the previous sample, colouring the sine wave according to the calculated <code>dy</code> value can be performed as follows. First, declare a static <code>color</code> variable for the pixel colour.</p>
-<pre><code class="prettyprint haxe">static var color : kha.Color = kha.Color.White;</code></pre>
-<p>Then, modify the colour's alpha channel value according to the calculated <code>dy</code>.</p>
-<pre><code class="prettyprint haxe">g1.begin();
-for (i in 0...framebuffer.width) {
-    var dy = Math.sin(kha.Scheduler.time() + i / period);
-    color.A = Math.abs(dy);
-    g1.setPixel(
-        i,
-        120 + Std.int(amplitude * dy),
-        color
-    );
-}
-g1.end();</code></pre>
-<p>The result is a sine wave of a brigther colour towards its peaks, and darker colour towards its valleys.</p>
-<canvas id="khatalogue-01d" width="640" height="240"></canvas>
-<h2>1.6. Scheduling tasks</h2>
-<p>This final sample sets up a task which randomises <code>amplitude</code>, <code>period</code>, and <code>color</code> parameter values periodically, therefore generating sine waves of various colours, shapes, and sizes.</p>
-<p>First, set up constants for minimum and maximum parameter values, as well as a constant for the task period. Note that the scheduler observes the passage of time in seconds, and the same goes for scheduled time tasks.</p>
-<pre><code class="prettyprint haxe">static inline var MAX_AMPLITUDE : Int = 100;
-static inline var MIN_AMPLITUDE : Int = 10;
-
-static inline var MAX_COLOR_CHANNEL_VALUE : Float = 1.0;
-static inline var MIN_COLOR_CHANNEL_VALUE : Float = 0.3;
-
-static inline var MAX_PERIOD : Int = 100;
-static inline var MIN_PERIOD : Int = 10;
-
-static inline var TASK_PERIOD : Int = 2;</code></pre>
-<p>Then, initialise the parameters.</p>
-<pre><code class="prettyprint haxe">static var random = new kha.math.Random(0);
-
-static var amplitude : Int = MAX_AMPLITUDE;
-static var period : Int = MAX_PERIOD;
-static var color : kha.Color = kha.Color.White;</code></pre>
-<p>Next, define the randomisation function. The <code>amplitude</code> and <code>period</code> parameters will be given a value in the range specified by their minimum and maximum values. The same goes for the <code>color</code> parameter's colour channel values.</p>
-<pre><code class="prettyprint haxe">static function randomize() : Void {
-    amplitude = random.GetIn(MIN_AMPLITUDE, MAX_AMPLITUDE);
-    period = random.GetIn(MIN_PERIOD, MAX_PERIOD);
-    color = kha.Color.fromFloats(
-        random.GetFloatIn(0.3, 1.0),
-        random.GetFloatIn(0.3, 1.0),
-        random.GetFloatIn(0.3, 1.0)
-    );
-}</code></pre>
-<p>Following that, schedule the randomisation task to occur at the specified period, beginning with the time the application starts.</p>
-<pre><code class="prettyprint haxe">static function init() : Void {
-    // ...
-    kha.Scheduler.addTimeTask(randomize, 0, TASK_PERIOD);
-}</code></pre>
-<p>The <code>render()</code> code remains untouched, as all changes are performed by the <code>randomize()</code> function.</p>
-<canvas id="khatalogue-01e" width="640" height="240"></canvas>
+<div class="wrapper">
+<h1 class="title">Khatalogue</h1>
+<ol class="article-items">
+<li>
+<a href="articles/01_Introduction.html">Introduction</a>
+</li>
 </div>
-<script src="./js/khatalogue-01a.js"></script>
-<script src="./js/khatalogue-01b.js"></script>
-<script src="./js/khatalogue-01c.js"></script>
-<script src="./js/khatalogue-01d.js"></script>
-<script src="./js/khatalogue-01e.js"></script>
+</ol>
+</div>
 </body>
 </html>
