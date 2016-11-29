@@ -36,7 +36,7 @@ div.wrapper {
     margin: 0 auto;
     padding: 4em 2em;
     width: 800px;
-    height: 100%;
+    min-height: 100%;
 }
 
 canvas {
