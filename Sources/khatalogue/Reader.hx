@@ -12,7 +12,7 @@ class Reader {
         var fullPath = Path.addTrailingSlash(FileSystem.fullPath(path));
         var files = FileSystem.readDirectory(fullPath);
         
-        var articlesPath = 'articles/';
+        var articlesPath = './articles/';
         var articles : Array<Article> = [];
         var items : Array<Item> = [];
 
@@ -41,6 +41,6 @@ class Reader {
     }
 
     static function replaceKhatalogueTags(content : String) : String {
-        return ~/(\[khatalogue-sample\])(\()(.+?)(\))/g.replace(content, '<canvas id="$3" width="640" height="240"></canvas><script src="./js/$3.js"></script>');
+        return ~/(\[khatalogue-sample\])(\()(.+?)(\))/g.replace(content, '<canvas id="$3" width="640" height="240"></canvas><script src="../js/$3.js"></script>');
     }
 }
