@@ -3,7 +3,7 @@
 This entry provides a brief introduction to the fundamentals of working with Kha. Specifically, the presented samples demonstrate how to:
 
 * set up a new Kha project;
-* draw to the framebuffer with the `graphics1` API;
+* draw to the framebuffer;
 * utilise a consistent, platform-agnostic pseudorandom number generator;
 * make use of elapsed time;
 * schedule function calls.
@@ -12,7 +12,7 @@ By the end of this entry, the reader should have a firm grasp on how to set up a
 
 ## 1.1. System initialisation
 
-Every Kha project begins with a call to `System.init()`, marking the initialisation of the targeted system's application context. This not only sets up the rendering context, but also initialises APIs that handle input devices (keyboard, mouse, gamepad, touchpad, microphone, sensors ...), output devices (display, headphones, speakers, ...), scheduling, and more.
+Every Kha project begins with a call to `System.init()`, marking the initialisation of the targeted system's application context. This not only sets up the rendering context, but also initialises APIs that handle input devices, output devices, scheduling, and more.
 
 The application context is initialised with a configuration structure which can contain:
 
@@ -23,9 +23,7 @@ The application context is initialised with a configuration structure which can 
 
 All of the above options are optional, as they have default values to fall back on.
 
-Along with the configuration, the context is also given a callback function to be executed when the initial set up finishes.
-
-With the above in mind, a simple Kha project can be boiled down to the following:
+Along with the configuration, the context is also given a callback function to be executed when the initial set up finishes. With that in mind, a simple Kha project can be boiled down to the following:
 
 ```haxe
 class Main {
@@ -47,7 +45,9 @@ class Main {
 }
 ```
 
-Note the use of the `init()` function to set up `render()` and `update()` loops once the application context is initialised. The rendering frame rate is uncapped, and the application is expected to update at 60 frames per second. Kha's scheduler will go to great lengths to maintain the desired frame rate, even as far as going backwards and forwards in simulation time to achieve that.
+Note the use of the `init()` function to set up `render()` and `update()` loops once the application context is initialised. The rendering frame rate is uncapped, and the application is expected to update at 60 frames per second. 
+
+Kha's scheduler will go to great lengths to maintain the desired frame rate, even as far as going backwards and forwards in simulation time to achieve that.
 
 > **Simulation time?**
 >
@@ -61,11 +61,11 @@ Note the use of the `init()` function to set up `render()` and `update()` loops 
 
 The rendering context is exposed in the form of a framebuffer, which is the visible colour output of the application. The framebuffer can be accessed and modified through any of Kha's graphics APIs:
 
-* `graphics1` (`g1`), a 1D API modelled after old pixel-pushing hardware;
-* `graphics2` (`g2`), a 2D API modelled after HTML5 canvas and Java painter APIs;
-* `graphics4` (`g4`), a 3D API modelled after shader-based graphics APIS (OpenGL ES 2, Direct 3D 11).
+* `graphics1` or `g1`, a 1D API modelled after old pixel-pushing hardware;
+* `graphics2` or `g2`, a 2D API modelled after HTML5 canvas and Java painter APIs;
+* `graphics4` or `g4`, a 3D API modelled after shader-based graphics APIS (OpenGL ES 2, Direct 3D 11).
 
-Kha's graphics APIs are generational. Not only does each API mimic a particular generation of computer graphics APIs, the higher-level APIs also provide implementations for their predecessors. Generally, an API like `g1` makes use of the 'most modern' API implemented for the target platform, such as `g2` or `g4`. This way, the lower-level APIs can be used even if the rendering context is set up by a higher-level API.
+Kha's graphics APIs are generational. Not only does each API mimic a particular generation of computer graphics APIs, but the more modern higher-level APIs also provide implementations for their predecessors. Generally, an API like `g1` makes use of the 'most modern' API implemented for the target platform, such as `g2` or `g4`. This way, the lower-level APIs can be used even if the rendering context is set up by a higher-level API.
 
 > **Where's `graphics3`?**
 >
@@ -73,8 +73,8 @@ Kha's graphics APIs are generational. Not only does each API mimic a particular 
 
 Drawing to the framebuffer is a three-step process:
 
-1. Choose a graphics API (e.g. `g2`) and prepare the rendering context with a call to `begin()` (e.g. `g2.begin()`);
-2. Use drawing functions provided by the API;
+1. Choose a graphics API and prepare the rendering context with a call to `begin()` (e.g. `g2.begin()`);
+2. Use drawing functions provided by the API (e.g. `g2.fillRect(...)`);
 3. After all drawing is performed, finalize the context with a call to `end()` (e.g. `g2.end()`).
 
 The samples in this entry make use of `g1`, because its simplicity won't distract from the other showcased APIs. Drawing to the framebuffer with `g1` is performed as follows:
@@ -88,7 +88,9 @@ static function render(framebuffer : kha.Framebuffer) : Void {
 }
 ```
 
-This sample draws a white pixel to the framebuffer at position (320, 120) relative to its top-left corner. 
+This sample draws a white pixel to the framebuffer at position (320, 120) relative to its top-left corner.
+
+[khatalogue-sample](khatalogue-01a)
 
 ## 1.3. Random number generation
 
@@ -100,7 +102,9 @@ To use the generator, instantiate it with an integer seed. Alternatively, rely o
 static var random = new kha.math.Random(0);
 ```
 
-The generator makes it possible to generate floating point or integer numbers, either at 'random' or in a specified range. To draw a number of pixels at random positions, generate integer numbers in the range of framebuffer dimensions. Note that setting pixels outside the framebuffer dimensions results in an attempt to write outside of allocated framebuffer memory, which will cause the application to crash.
+The generator makes it possible to generate floating point or integer numbers, either at 'random' or in a specified range. A seed will always generate random numbers in the same order, making the number generator deterministic (pseudorandom). This is great for testing, but less so for a release environment. A trick for randomizing the seed at runtime is to use system time (e.g. `kha.System.time`) instead of a predetermined hard-coded value.
+
+To draw pixels at random positions, generate integer numbers in the range of framebuffer dimensions. Note that setting pixels outside the framebuffer dimensions results in an attempt to write outside of allocated framebuffer memory, which will cause the application to crash.
 
 ```haxe
 g1.begin();
@@ -116,9 +120,17 @@ g1.end();
 
 This sample creates 'white noise', as different pixels are coloured white every frame, at random.
 
+[khatalogue-sample](khatalogue-01b)
+
 ## 1.4. Simulation time
 
 The scheduler - located in `kha.Scheduler` - is a powerful API for scheduling and managing time and frame tasks. It also exposes the previously discussed real and simulation time variables.
+
+> **Time tasks? Frame tasks?**
+> 
+> Time tasks are defined by a starting time, period, and number of repeats (duration). Their execution depends on and is triggered by simulation time. An example time task is the `update()` function, which is timed to be executed at 60 frames per second, infinitely, from the moment the application context is initialised.
+>
+> Frame tasks are defined solely by priority and their execution occurs on a per-frame basis. An example frame task is the `render()` function, as set up by `kha.System.notifyOnRender()`.
 
 This sample demonstrates how simulation time can be used with a periodic function to draw animated pixels to the framebuffer.
 
@@ -146,6 +158,8 @@ g1.end();
 
 The result is an animated sine wave.
 
+[khatalogue-sample](khatalogue-01c)
+
 ## 1.5. Colours
 
 Kha also provides an API for working with colours in the form of `kha.Color`. At run-time, a colour is represented by a 32-bit (unsigned) integer where colour channels are packed in an ARGB format. At compile-time, the API allows for colours to be created from a hex string, integer value, byte components, or float components. Additionally, colour channels can be read or written to directly with use of byte or float values.
@@ -172,7 +186,9 @@ for (i in 0...framebuffer.width) {
 g1.end();
 ```
 
-The result is a sine wave of a brigther colour towards its peaks, and darker colour towards its valleys.
+The result is a sine wave of a brigther colour towards its crests, and darker towards its rest line.
+
+[khatalogue-sample](khatalogue-01d)
 
 ## 1.6. Scheduling tasks
 
@@ -227,3 +243,7 @@ static function init() : Void {
 ```
 
 The `render()` code remains untouched, as all changes are performed by the `randomize()` function.
+
+[khatalogue-sample](khatalogue-01e)
+
+The result is a display of various forms of colourful sine waves.
