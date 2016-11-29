@@ -25,7 +25,7 @@ class Reader {
 
                 items.push({ path: articlesPath + path + '.html', title: title });
                 
-                var content = Markdown.markdownToHtml(File.getContent(fullPath + file));
+                var content = Markdown.markdownToHtml(replaceKhatalogueTags(File.getContent(fullPath + file)));
 
                 articles.push({ content: content, path: path, title: title });
             }
@@ -36,5 +36,9 @@ class Reader {
 
     static function hasExtension(file : String, ext : String) : Bool {
         return file.split('.').pop() == ext;
+    }
+
+    static function replaceKhatalogueTags(content : String) : String {
+        return ~/(\[khatalogue-sample\])(\()(.+?)(\))/g.replace(content, '<canvas id="$3" width="640" height="240"></canvas><script src="./js/$3.js"></script>');
     }
 }
