@@ -18,16 +18,12 @@ class Reader {
 
         for (file in files) {
             if (hasExtension(file, 'md')) {
-                var titleArray = file.split('_');
-                titleArray.shift();
-                titleArray = titleArray.join(' ').split('.');
-                titleArray.pop();
-                var title = titleArray.join(' ');
+                var title = file;
                 var path = file.split('.').shift();
 
                 items.push({ path: articlesPath + path + '.html', title: title });
                 
-                var content = Markdown.markdownToHtml(replaceKhatalogueTags(File.getContent(fullPath + file)));
+                var content = File.getContent(fullPath + file);
 
                 articles.push({ content: content, path: path, title: title });
             }
@@ -38,9 +34,5 @@ class Reader {
 
     static function hasExtension(file : String, ext : String) : Bool {
         return file.split('.').pop() == ext;
-    }
-
-    static function replaceKhatalogueTags(content : String) : String {
-        return ~/(\[khatalogue-sample\])(\()(.+?)(\))/g.replace(content, '<canvas id="$3" width="640" height="240"></canvas><script src="../js/$3.js"></script>');
     }
 }
